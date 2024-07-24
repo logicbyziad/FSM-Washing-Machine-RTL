@@ -11,7 +11,7 @@ module washing_machine_fsm (
 // States for the FSM			PS. Gray Encoded ;)
 parameter   idle_op   = 'b111,
             fill_med  = 'b110,
-			fill_high = 'b101,
+	    fill_high = 'b101,
             activate  = 'b100,
             drain     = 'b000,
             spin_op   = 'b001,
@@ -52,120 +52,120 @@ always@(*)
 	case (current_state)
         idle_op:    begin
                     
-					IDLE = 'b1;
-					if(ON_SUMMER && !ON_WINTER && DOOR_SENSOR) 
-						next_state = fill_med;
+			IDLE = 'b1;
+			if(ON_SUMMER && !ON_WINTER && DOOR_SENSOR) 
+				next_state = fill_med;
+			
+			else if(ON_WINTER && !ON_SUMMER && DOOR_SENSOR)
+				next_state = fill_high;					
 					
-					else if(ON_WINTER && !ON_SUMMER && DOOR_SENSOR)
-						next_state = fill_high;					
-					
-					else next_state = idle_op;
+			else next_state = idle_op;
 					
                     end
         
 		
-		fill_med:   begin
+	fill_med:   begin
+				
+			FILLING  = 'b1;
+			WATER_EN = 'b1;
 					
-					FILLING  = 'b1;
-					WATER_EN = 'b1;
-					
-					if(WATER_SENSOR_M)		//Water level medium
-						next_state = activate;
+			if(WATER_SENSOR_M)		//Water level medium
+				next_state = activate;
 						
-					else next_state = fill_med;
+			else next_state = fill_med;
 					
                     end
 
-		fill_high:  begin
+	fill_high:  begin
 					
-					FILLING  = 'b1;
-					WATER_EN = 'b1;
+			FILLING  = 'b1;
+			WATER_EN = 'b1;
 					
-					if(WATER_SENSOR_H)		//Water level filled
-						next_state = activate;
+			if(WATER_SENSOR_H)		//Water level filled
+				next_state = activate;
 						
-					else next_state = fill_high;
+			else next_state = fill_high;
 					
                     end
         
         
-		activate:   begin
+	activate:   begin
 					
-					ACTIVE    = 'b1;
-					TIMER_EN  = 'b1;
-					WASHER_EN = 'b1;
+			ACTIVE    = 'b1;
+			TIMER_EN  = 'b1;
+			WASHER_EN = 'b1;
+			
+			if(WATER_SENSOR_H)
+				TIMER_SEL = 'b10;
+			else if (WATER_SENSOR_M)
+				TIMER_SEL = 'b01;
 					
-					if(WATER_SENSOR_H)
-						TIMER_SEL = 'b10;
-					else if (WATER_SENSOR_M)
-						TIMER_SEL = 'b01;
 					
-					
-					if(TIMER_DONE)
-						next_state = drain;
-					else
-						next_state = activate;
+			if(TIMER_DONE)
+				next_state = drain;
+			else
+				next_state = activate;
 		
 		
                     end
         
-		drain:      begin
+	drain:      begin
 		
-					DRAIN    = 'b1;		//Flag
-					DRAIN_EN = 'b1;		//Control Enable block
-					
-					if(!WATER_SENSOR_H && !WATER_SENSOR_M)
-						next_state = spin_op;
-					else
-						next_state = drain;
+			DRAIN    = 'b1;		//Flag
+			DRAIN_EN = 'b1;		//Control Enable block
+				
+			if(!WATER_SENSOR_H && !WATER_SENSOR_M)
+				next_state = spin_op;
+			else
+				next_state = drain;
 		
                     end
         
-		spin_op:    begin
+	spin_op:    begin
 					
-					SPIN      = 'b1;		//Flag
-					SPIN_EN   = 'b1;		//Control Enable block
-					TIMER_SEL = 'b11;
+			SPIN      = 'b1;		//Flag
+			SPIN_EN   = 'b1;		//Control Enable block
+			TIMER_SEL = 'b11;
 					
-					if(TIMER_DONE)
-						next_state = end_op;
-					else
-						next_state = spin_op;
+			if(TIMER_DONE)
+				next_state = end_op;
+			else
+				next_state = spin_op;
 					
                     end
         
-		end_op:     begin
+	end_op:     begin
 		
-					DONE = 'b1;
-					
-					if(!DOOR_SENSOR)
-						next_state = idle_op;
-					else
-						next_state = end_op;
+			DONE = 'b1;
+				
+			if(!DOOR_SENSOR)
+				next_state = idle_op;
+			else
+				next_state = end_op;
 		
                    
-					end               
+		    end               
 
-		default:	begin
+	default:     begin
 						
-						current_state = idle_op;
+			current_state = idle_op;
 						
-						//Flags
-						FILLING	= 'b0;
-						ACTIVE	= 'b0; 
-						DRAIN	= 'b0;
-						SPIN	= 'b0; 
-						IDLE	= 'b0;  
-						DONE	= 'b0; 
+			//Flags
+			FILLING	= 'b0;
+			ACTIVE	= 'b0; 
+			DRAIN	= 'b0;
+			SPIN	= 'b0; 
+			IDLE	= 'b0;  
+			DONE	= 'b0; 
 						
-						//Control Signals
-						TIMER_EN   = 'b0;
-						WASHER_EN  = 'b0;
-						WATER_EN   = 'b0;
-						SPIN_EN    = 'b0;
-						DRAIN_EN   = 'b0;
+			//Control Signals
+			TIMER_EN   = 'b0;  
+			WASHER_EN  = 'b0;
+			WATER_EN   = 'b0;
+			SPIN_EN    = 'b0;
+			DRAIN_EN   = 'b0;
 						
-					end
+		     end
 			
     endcase
  end
